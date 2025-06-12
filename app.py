@@ -1,89 +1,79 @@
 import streamlit as st
 from datetime import datetime
-import calendar
-import chinese_calendar
-from convertdate import chinese
+import convertdate
 
-st.set_page_config(page_title="Mai Hoa Dịch Số", layout="centered")
-
-st.title("🔮 Bói Quẻ Kinh Dịch - Mai Hoa Dịch Số")
-st.markdown("Tính quẻ theo ngày giờ, phương pháp Mai Hoa Dịch Số. Chuyển đổi âm lịch, kết luận tên quẻ và diễn giải.")
-
-# Danh sách 8 quẻ cơ bản
-bagua = ["Càn", "Đoài", "Ly", "Chấn", "Tốn", "Khảm", "Cấn", "Khôn"]
-
-# Danh sách 64 quẻ (chỉ demo vài cái, bạn có thể mở rộng)
-que_dich = {
-    (0, 0): ("Càn vi Càn", "Thuần dương, tượng trưng cho sáng tạo, kiên định, tiến lên. Quẻ tốt."),
-    (7, 7): ("Khôn vi Khôn", "Thuần âm, tượng trưng cho nhu thuận, nâng đỡ, dưỡng sinh. Quẻ tốt."),
-    (6, 1): ("Cấn Đoài", "Tượng trưng cho cản trở, đụng độ nhưng có cơ hội chuyển hóa."),
-    (1, 6): ("Đoài Cấn", "Niềm vui và sự vững chắc kết hợp. Có thể mang lại may mắn."),
-    # ... Thêm các tổ hợp quẻ khác nếu muốn
+# Danh sách Can và Chi
+CAN = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"]
+CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tị", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"]
+QUE = ["Càn", "Đoài", "Ly", "Chấn", "Tốn", "Khảm", "Cấn", "Khôn"]
+LUAN_GIAI = {
+    "Càn": "Quẻ Càn là quẻ của Trời, tượng trưng cho sức mạnh, sự khởi đầu và thành công.",
+    "Đoài": "Quẻ Đoài tượng trưng cho vui vẻ, duyên dáng, có phần mềm mỏng và lôi cuốn.",
+    "Ly": "Quẻ Ly đại diện cho lửa, ánh sáng, sự hiểu biết, danh tiếng và văn minh.",
+    "Chấn": "Quẻ Chấn biểu thị sự chuyển động, thay đổi, sức mạnh bùng nổ.",
+    "Tốn": "Quẻ Tốn là gió, linh hoạt, mềm dẻo, đại diện cho sự thuyết phục và thích nghi.",
+    "Khảm": "Quẻ Khảm là nước, tượng trưng cho nguy hiểm, chiều sâu và trí tuệ.",
+    "Cấn": "Quẻ Cấn là núi, đại diện cho tĩnh lặng, suy ngẫm, chậm rãi nhưng vững chắc.",
+    "Khôn": "Quẻ Khôn là Đất, khiêm nhường, tiếp nhận, hỗ trợ và nuôi dưỡng."
 }
 
-# Nhập dữ liệu
-col1, col2 = st.columns(2)
-with col1:
-    ngay_gio = st.date_input("📅 Chọn ngày gieo quẻ", value=datetime.today())
-with col2:
-    gio = st.time_input("🕓 Chọn giờ gieo quẻ", value=datetime.now().time())
+def convert_to_lunar(date):
+    """Chuyển đổi ngày dương sang âm lịch"""
+    return convertdate.lunar.from_gregorian(date.year, date.month, date.day)
 
-# Chuyển sang Âm lịch
-def convert_to_lunar(dt: datetime):
-    lunar = chinese.from_gregorian(dt.year, dt.month, dt.day)
+def get_can_chi_nam(year):
+    can = CAN[year % 10]
+    chi = CHI[year % 12]
+    return f"{can} {chi}"
+
+def get_que_index(*args, modulo):
+    total = sum(args)
+    return total % modulo
+
+def tra_que(datetime_input):
+    gio = datetime_input.hour
+    ngay = datetime_input.day
+    thang = datetime_input.month
+    nam = datetime_input.year
+
+    # Lấy chi số từ Can Chi năm
+    chi_nam_index = nam % 12  # ví dụ: Giáp Thìn → Thìn = 4
+    can_nam_index = nam % 10
+
+    que_thuong = get_que_index(ngay + thang + can_nam_index + chi_nam_index, modulo=8)
+    que_ha = get_que_index(gio + ngay + thang + nam, modulo=8)
+    que_dong = get_que_index(gio + ngay + thang + nam, modulo=6)
+
+    ten_que_thuong = QUE[que_thuong]
+    ten_que_ha = QUE[que_ha]
+    ten_quai = f"{ten_que_thuong} vi {ten_que_ha}"
+
+    y_nghia = LUAN_GIAI.get(ten_que_thuong, "Chưa có luận giải.")
+
     return {
-        "year": lunar[0],
-        "month": lunar[1],
-        "day": lunar[2],
-        "leap": lunar[3],
+        "Thượng quái": ten_que_thuong,
+        "Hạ quái": ten_que_ha,
+        "Quẻ động": que_dong + 1,
+        "Tên quẻ": ten_quai,
+        "Luận giải": y_nghia
     }
 
-# Quy đổi Can Chi sang số
-can_chi_gia_tri = {
-    "Giáp": 1, "Ất": 2, "Bính": 3, "Đinh": 4, "Mậu": 5,
-    "Kỷ": 6, "Canh": 7, "Tân": 8, "Nhâm": 9, "Quý": 10,
-    "Tý": 1, "Sửu": 2, "Dần": 3, "Mão": 4, "Thìn": 5, "Tỵ": 6,
-    "Ngọ": 7, "Mùi": 8, "Thân": 9, "Dậu": 10, "Tuất": 11, "Hợi": 12,
-}
+# Giao diện Streamlit
+st.title("🧿 Bói Quẻ Kinh Dịch - Mai Hoa Dịch Số")
+st.markdown("Hệ thống lập quẻ theo ngày giờ, chuyển âm lịch, xác định tên quẻ và luận giải ý nghĩa.")
 
-# Tính toán giá trị Can Chi đơn giản (chỉ chi, demo)
-def get_chi_number(year):
-    chi = (year - 4) % 12 + 1  # Tý = 1
-    return chi
+input_date = st.date_input("📅 Chọn ngày (dương lịch):", value=datetime.today())
+input_time = st.time_input("🕓 Chọn giờ:", value=datetime.now().time())
 
-# Tính quẻ
-def tinh_que(gio, ngay, thang, nam):
-    # Quy đổi giờ sang số can chi (Tý=1, Sửu=2, ...)
-    gio_gia_tri = int((gio.hour + 1) // 2) + 1
-    if gio_gia_tri > 12:
-        gio_gia_tri -= 12
+if st.button("📜 Gieo quẻ"):
+    input_datetime = datetime.combine(input_date, input_time)
+    result = tra_que(input_datetime)
+    lunar = convert_to_lunar(input_datetime)
 
-    # Dùng Chi (đơn giản) để tính
-    chi_ngay = ngay
-    chi_thang = thang
-    chi_nam = get_chi_number(nam)
-
-    que_thuong = (chi_ngay + chi_thang + chi_nam) % 8
-    que_ha = (gio_gia_tri + chi_ngay + chi_thang + chi_nam) % 8
-    que_dong = (gio_gia_tri + chi_ngay + chi_thang + chi_nam) % 6 + 1
-
-    return que_thuong, que_ha, que_dong
-
-# Bấm nút xem quẻ
-if st.button("🌠 Xem quẻ"):
-    dt = datetime.combine(ngay_gio, gio)
-    am_lich = convert_to_lunar(dt)
-    st.markdown(f"**Âm lịch:** {am_lich['day']:02d}/{am_lich['month']:02d}/{am_lich['year']} {'(Nhuận)' if am_lich['leap'] else ''}")
-
-    q_thuong, q_ha, q_dong = tinh_que(gio, am_lich['day'], am_lich['month'], am_lich['year'])
-
-    ten_que_thuong = bagua[q_thuong]
-    ten_que_ha = bagua[q_ha]
-    ten_que = que_dich.get((q_thuong, q_ha), (f"{ten_que_thuong} {ten_que_ha}", "Chưa có diễn giải."))
-
-    st.subheader(f"🔮 Quẻ Chủ: {ten_que[0]}")
-    st.markdown(f"**Ý nghĩa:** {ten_que[1]}")
-    st.markdown(f"**Hào động:** Vị trí **hào {q_dong}** (đếm từ dưới lên)")
-
-    st.info("Đây là kết quả tính toán theo phương pháp Mai Hoa Dịch Số, có thể mở rộng diễn giải, chi tiết quẻ biến trong bản nâng cấp.")
-
+    st.subheader("📌 Kết quả:")
+    st.write(f"🌕 Âm lịch: Ngày {lunar[2]}, Tháng {lunar[1]}, Năm {get_can_chi_nam(input_date.year)}")
+    st.write(f"🔮 Thượng quái: **{result['Thượng quái']}**")
+    st.write(f"🔮 Hạ quái: **{result['Hạ quái']}**")
+    st.write(f"📍 Hào động: **Hào số {result['Quẻ động']}**")
+    st.write(f"🪐 Tên quẻ: **{result['Tên quẻ']}**")
+    st.markdown(f"📝 **Luận giải:** {result['Luận giải']}")
