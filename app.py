@@ -1,72 +1,68 @@
 import streamlit as st
 import datetime
+import random
 
-# ==== Danh sách Can và Chi ====
-CAN = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"]
-CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"]
-QUE = [
-    "Càn", "Đoài", "Ly", "Chấn", "Tốn", "Khảm", "Cấn", "Khôn"
-]
+# --- Danh sách 64 quẻ Kinh Dịch và ý nghĩa ---
+ten_que = {
+    (1, 1): ("Càn vi Thiên", "Thuần Càn tượng trưng cho trời, sức mạnh, sự khởi đầu lớn."),
+    (2, 2): ("Khôn vi Địa", "Thuần Khôn tượng trưng cho đất, nhu thuận, dưỡng nuôi."),
+    (1, 2): ("Thủy Thiên Nhu", "Tình thế đang khó khăn, cần nhẫn nại chờ thời."),
+    (2, 1): ("Thiên Địa Bĩ", "Bế tắc, không thông. Nên an phận và chờ cơ hội."),
+    # ... (Thêm đầy đủ 64 quẻ như trên)
+    (63, 63): ("Thủy Hỏa Ký Tế", "Mọi việc đã hoàn thành, nên duy trì và ổn định."),
+    (64, 64): ("Hỏa Thủy Vị Tế", "Việc chưa xong, cần kiên trì và tránh hấp tấp.")
+}
 
-# ==== Hàm tính Can Chi của năm (theo âm lịch Trung Hoa) ====
-def get_can_chi_nam(nam):
-    can = CAN[(nam + 6) % 10]
-    chi = CHI[(nam + 8) % 12]
-    return f"{can} {chi}", (CAN.index(can), CHI.index(chi))
+# Hàm chuyển đổi ngày dương sang âm (sơ lược)
+def doi_lich_am_duong(ngay):
+    return f"Âm lịch tương ứng: {ngay.day}/{ngay.month}/{ngay.year} (demo)"
 
-# ==== Giao diện chọn ngày ====
-st.title("🧙 Bói Quẻ Kinh Dịch - Mai Hoa Dịch Số")
+# Hàm lấy tên và ý nghĩa quẻ
+
+def lay_ten_va_y_nghia_que(thuong, ha):
+    return ten_que.get((thuong, ha), ("Chưa rõ", "Đang cập nhật..."))
+
+# --- Giao diện Streamlit ---
+st.title("🧧 Gieo Quẻ Kinh Dịch - Mai Hoa Dịch Số")
+
+st.markdown("""
+Bạn hãy chọn ngày muốn gieo quẻ để xem quẻ dịch, tên quẻ, ý nghĩa và lưu lại lịch sử cá nhân.
+""")
+
 selected_date = st.date_input(
-    "📅 Chọn ngày muốn gieo quẻ:",
+    "Chọn ngày muốn gieo quẻ:",
     value=datetime.date.today(),
     min_value=datetime.date(1900, 1, 1),
     max_value=datetime.date(2100, 12, 31)
 )
 
-# ==== Giao diện chọn giờ ====
-gio_list = [
-    "Tý (23h-1h)", "Sửu (1h-3h)", "Dần (3h-5h)", "Mão (5h-7h)",
-    "Thìn (7h-9h)", "Tỵ (9h-11h)", "Ngọ (11h-13h)", "Mùi (13h-15h)",
-    "Thân (15h-17h)", "Dậu (17h-19h)", "Tuất (19h-21h)", "Hợi (21h-23h)"
-]
-gio_chi = [g.split()[0] for g in gio_list]
-gio_chon = st.selectbox("🕒 Chọn giờ sinh / giờ gieo quẻ:", gio_list)
-gio_index = gio_list.index(gio_chon)
+if st.button("🔮 Gieo Quẻ"):
+    random.seed(selected_date.toordinal())
+    thuong = random.randint(1, 64)
+    ha = random.randint(1, 64)
+    ten, y_nghia = lay_ten_va_y_nghia_que(thuong, ha)
 
-# ==== Tính toán các chỉ số ====
-ngay = selected_date.day
-thang = selected_date.month
-nam = selected_date.year
+    st.subheader(f"🧿 Tên Quẻ: {ten}")
+    st.markdown(f"**Ý nghĩa:** {y_nghia}")
 
-# Can Chi năm
-can_chi_nam_text, (can_index, chi_index) = get_can_chi_nam(nam)
+    st.info(f"Ngày dương lịch: {selected_date}\n\n{doi_lich_am_duong(selected_date)}")
 
-# Quẻ hạ = (Giờ + Ngày + Tháng + Năm) % 8
-que_ha = (gio_index + ngay + thang + nam) % 8
-# Quẻ thượng = (Can_năm + Tháng + Ngày) % 8
-que_thuong = (can_index + thang + ngay) % 8
-# Hào động = (Giờ + Ngày + Tháng + Năm) % 6 + 1
-hao_dong = (gio_index + ngay + thang + nam) % 6 + 1
+    # Gợi ý hào động đơn giản
+    hao_dong = random.randint(1, 6)
+    st.write(f"Hào động: {hao_dong} (hào {hao_dong} động, cần xem kỹ hào này trong sách dịch để hiểu rõ tình thế)")
 
-# ==== Kết luận và hiển thị ====
-st.markdown("## 📜 Kết Quả Bói Quẻ")
-st.write(f"🌙 Ngày âm lịch (tính Can Chi năm): **{can_chi_nam_text}**")
-st.write(f"🔮 Quẻ Thượng: **{QUE[que_thuong]}**")
-st.write(f"🔮 Quẻ Hạ: **{QUE[que_ha]}**")
-st.write(f"📌 Hào Động: **Hào số {hao_dong}**")
-st.success(f"✨ Quẻ: **{QUE[que_thuong]} trên {QUE[que_ha]}**, Hào động: {hao_dong}")
+    # Lưu lịch sử gieo quẻ trong session
+    if "lich_su" not in st.session_state:
+        st.session_state.lich_su = []
+    st.session_state.lich_su.append({
+        "ngay": str(selected_date),
+        "que": ten,
+        "hao": hao_dong
+    })
 
-# Gợi ý tên quẻ (chưa đầy đủ danh sách 64 quẻ)
-TEN_QUE_64 = {
-    ("Càn", "Càn"): "Thuần Càn",
-    ("Khôn", "Khôn"): "Thuần Khôn",
-    ("Ly", "Càn"): "Hỏa Thiên Đại Hữu",
-    ("Cấn", "Khảm"): "Sơn Thủy Mông",
-    # Có thể bổ sung dần thêm tên quẻ ở đây...
-}
-ten_que = TEN_QUE_64.get((QUE[que_thuong], QUE[que_ha]), "Đang cập nhật...")
+# --- Hiển thị lịch sử gieo quẻ ---
 
-st.markdown(f"### 🧾 Tên quẻ: **{ten_que}**")
-if ten_que != "Đang cập nhật...":
-    st.info(f"👉 Đang tra ý nghĩa quẻ **{ten_que}**, sẽ cập nhật sớm.")
-
+if "lich_su" in st.session_state:
+    st.markdown("## 📜 Lịch sử các lần gieo quẻ")
+    for idx, record in enumerate(reversed(st.session_state.lich_su)):
+        st.write(f"**Lần {len(st.session_state.lich_su)-idx}:** {record['ngay']} → {record['que']} (Hào {record['hao']})")
