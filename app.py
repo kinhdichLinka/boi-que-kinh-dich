@@ -64,7 +64,7 @@ ten_que = {
     (8, 2): ("Phong Địa Quan", "Quan sát, suy xét."),
     (8, 3): ("Phong Lôi Ích", "Lợi ích, thịnh vượng."),
     (8, 4): ("Phong Sơn Tiệm", "Tiến dần, ổn định."),
-    (8, 5): ("Phong Thủy Hoán", "Biến đổi, đổi mới."),
+    (8, 5): ("Phong Thuỷ Hoán", "Biến đổi, đổi mới."),
     (8, 6): ("Phong Hỏa Gia Nhân", "Gia đình, nội bộ."),
     (8, 7): ("Phong Trạch Trung Phu", "Thành thật, trung thực."),
     (8, 8): ("Phong vi Tốn", "Khiêm tốn, nhu thuận."),
@@ -77,6 +77,7 @@ gio_sinh_labels = [
     "Thân (15h-17h)", "Dậu (17h-19h)", "Tuất (19h-21h)", "Hợi (21h-23h)"
 ]
 
+st.set_page_config(page_title="Gieo Quẻ Kinh Dịch", page_icon="🔮", layout="centered")
 st.title("🔍 Gieo Quẻ Kinh Dịch theo Mai Hoa Dịch Số")
 st.markdown("Nhập thông tin **ngày sinh âm lịch** để gieo quẻ theo Mai Hoa Dịch Số:")
 
@@ -89,21 +90,19 @@ with col2:
     gio_sinh = st.selectbox("Giờ sinh (theo 12 Can Chi)", options=list(range(12)), format_func=lambda x: gio_sinh_labels[x])
 
 if st.button("🔮 Gieo Quẻ"):
-    thuong = (ngay + thang + nam) % 8
-    ha = (gio_sinh + ngay + thang + nam) % 8
-    hao_dong = (gio_sinh + ngay + thang + nam) % 6 + 1
+    tong = ngay + thang + nam + gio_sinh
+    thuong = tong % 8
+    ha = (tong + 1) % 8
+    hao_dong = tong % 6 + 1
 
     thuong = 8 if thuong == 0 else thuong
     ha = 8 if ha == 0 else ha
 
     ten, y_nghia = ten_que.get((thuong, ha), (f"Quẻ {thuong}-{ha}", "(Chưa cập nhật ý nghĩa cho quẻ này)"))
 
-    ten_que_thuong = next((v[0] for k, v in ten_que.items() if k[0] == thuong and k[1] == thuong), f"Quẻ {thuong}")
-    ten_que_ha = next((v[0] for k, v in ten_que.items() if k[1] == ha and k[0] == ha), f"Quẻ {ha}")
-
     st.subheader(f"🧿 Kết quả gieo quẻ")
-    st.markdown(f"- **Quẻ Thượng (số {thuong})** → {ten_que_thuong}")
-    st.markdown(f"- **Quẻ Hạ (số {ha})** → {ten_que_ha}")
+    st.markdown(f"- **Quẻ Thượng (số {thuong})**")
+    st.markdown(f"- **Quẻ Hạ (số {ha})**")
     st.markdown(f"- **Hào động:** Hào {hao_dong}")
     st.markdown(f"### 🔮 **Quẻ Chủ: {ten}**")
     st.markdown(f"{y_nghia}")
