@@ -1,87 +1,84 @@
 import streamlit as st
 import datetime
+import json
 
 # --- Danh sách đầy đủ 64 quẻ Kinh Dịch và ý nghĩa sơ lược ---
 ten_que = {
-    (1, 1): ("Càn vi Thiên", "Thuần Càn - Tượng trưng cho trời, sức mạnh, sự khởi đầu lớn."),
-    (2, 2): ("Khôn vi Địa", "Thuần Khôn - Đất, nhu thuận, dưỡng nuôi."),
-    (3, 3): ("Thuỷ Lôi Truân", "Gian nan thuở đầu, cần kiên trì vượt khó."),
-    (4, 4): ("Sơn Thuỷ Mông", "Tối tăm, hỗn loạn, cần khai sáng và học hỏi."),
-    (5, 5): ("Thuỷ Thiên Nhu", "Chờ thời, nhu thuận để vượt khó."),
-    (6, 6): ("Thiên Thuỷ Tụng", "Tranh chấp, kiện tụng, nên giữ hoà khí."),
-    (7, 7): ("Địa Thuỷ Sư", "Đội ngũ, tổ chức, cần kỷ luật và lãnh đạo."),
-    (8, 8): ("Thuỷ Địa Tỷ", "Gắn bó, tương trợ lẫn nhau."),
-    (1, 2): ("Phong Thiên Tiểu Súc", "Tiểu nhân cản trở, cần nhẫn nại."),
-    (1, 3): ("Thuỷ Thiên Nhu", "Chờ thời, thuận theo tự nhiên."),
-    (1, 4): ("Sơn Thiên Đại Súc", "Tích luỹ, chuẩn bị cho hành động lớn."),
-    (1, 5): ("Hỏa Thiên Đại Hữu", "Tài sản lớn, thời kỳ phát triển mạnh."),
-    (1, 6): ("Thiên Hỏa Đồng Nhân", "Đồng lòng, đoàn kết phát triển."),
-    (1, 7): ("Địa Thiên Thái", "Thịnh vượng, thuận lợi mọi mặt."),
-    (1, 8): ("Sơn Thiên Đại Súc", "Tích lũy nội lực, chuẩn bị cho phát triển."),
-    (2, 1): ("Thiên Trạch Lý", "Sắp xếp, cải cách, giữ lễ nghĩa."),
-    (2, 3): ("Thuỷ Địa Tỷ", "Gắn bó, kết nối, hoà hợp với mọi người."),
-    (2, 4): ("Sơn Địa Bác", "Suy tàn, kết thúc giai đoạn cũ."),
-    (2, 5): ("Hỏa Địa Tấn", "Tiến lên, phát triển rực rỡ."),
-    (2, 6): ("Thiên Địa Bĩ", "Bế tắc, khó khăn, nên chờ thời."),
-    (2, 7): ("Địa Thiên Thái", "Giao hòa, thịnh vượng."),
-    (2, 8): ("Sơn Địa Bác", "Tàn úa, chuyển đổi sang giai đoạn mới."),
-    (3, 1): ("Thiên Lôi Vô Vọng", "Không vọng động, tránh hành động vô căn cứ."),
-    (3, 2): ("Phong Lôi Ích", "Lợi ích lớn, cần hành động hợp thời."),
-    (3, 4): ("Sơn Lôi Di", "Đổi mới, thay đổi đúng lúc."),
-    (3, 5): ("Hỏa Lôi Phệ Hạp", "Cương quyết xử lý vấn đề."),
-    (3, 6): ("Thiên Lôi Vô Vọng", "Không vọng tưởng, giữ vững đạo lý."),
-    (3, 7): ("Địa Lôi Phục", "Trở về, phục hồi, khởi đầu mới."),
-    (3, 8): ("Sơn Lôi Di", "Thay đổi, biến chuyển."),
-    (4, 1): ("Thiên Sơn Độn", "Rút lui chiến lược, tránh xung đột."),
-    (4, 2): ("Phong Sơn Tiệm", "Tiến chậm rãi nhưng chắc chắn."),
-    (4, 3): ("Lôi Sơn Tiểu Quá", "Việc nhỏ nên làm, việc lớn nên tránh."),
-    (4, 5): ("Hỏa Sơn Lữ", "Lữ hành, tạm thời, không ổn định."),
-    (4, 6): ("Lôi Hỏa Phong", "Rực rỡ, thông minh, phát triển mạnh."),
-    (4, 7): ("Địa Sơn Khiêm", "Khiêm tốn, giữ mình."),
-    (4, 8): ("Sơn Sơn Cấn", "Dừng lại, tĩnh tại, cần xem xét lại."),
-    (5, 1): ("Thiên Thuỷ Tụng", "Tranh chấp, cần hoà giải."),
-    (5, 2): ("Phong Thuỷ Hoán", "Biến đổi mạnh, cơ hội chuyển mình."),
-    (5, 3): ("Thuỷ Lôi Truân", "Gian nan, vượt khó ban đầu."),
-    (5, 4): ("Sơn Thuỷ Mông", "Mông muội, cần học hỏi."),
-    (5, 6): ("Hỏa Thuỷ Vị Tế", "Chưa xong, cần hoàn thiện."),
-    (5, 7): ("Địa Thuỷ Sư", "Tổ chức, kỷ luật."),
-    (5, 8): ("Sơn Thuỷ Mông", "Chưa rõ ràng, cần khai sáng."),
-    (6, 1): ("Thiên Hỏa Đồng Nhân", "Hợp tác, đồng lòng."),
-    (6, 2): ("Phong Hỏa Gia Nhân", "Gia đình, ổn định nội bộ."),
-    (6, 3): ("Thuỷ Hỏa Ký Tế", "Hoàn tất, kết thúc tốt đẹp."),
-    (6, 4): ("Sơn Hỏa Bí", "Trang sức, vẻ đẹp, ngoài sáng trong tối."),
-    (6, 5): ("Hỏa Thiên Đại Hữu", "Đại tài sản, thành công."),
-    (6, 7): ("Địa Hỏa Minh Di", "Ẩn mình, chờ thời."),
-    (6, 8): ("Sơn Hỏa Bí", "Vẻ ngoài hào nhoáng, bên trong cần suy xét."),
-    (7, 1): ("Thiên Địa Bĩ", "Bế tắc, ngưng trệ."),
-    (7, 2): ("Phong Địa Quan", "Quan sát, thấu hiểu thời thế."),
-    (7, 3): ("Thuỷ Địa Tỷ", "Tương trợ, hoà hợp."),
-    (7, 4): ("Sơn Địa Bác", "Kết thúc, chuyển giai đoạn."),
-    (7, 5): ("Hỏa Địa Tấn", "Tiến lên, phát triển."),
-    (7, 6): ("Thiên Địa Bĩ", "Bất hòa, nghịch cảnh."),
-    (7, 8): ("Sơn Địa Bác", "Tàn lụi, kết thúc chu kỳ."),
-    (8, 1): ("Thiên Sơn Độn", "Tạm thời rút lui, không hành động."),
-    (8, 2): ("Phong Sơn Tiệm", "Tiến từ từ, vững chắc."),
-    (8, 3): ("Thuỷ Sơn Kiển", "Nguy hiểm, cần đề phòng."),
-    (8, 4): ("Sơn Sơn Cấn", "Tĩnh tại, dừng lại suy xét."),
-    (8, 5): ("Hỏa Sơn Lữ", "Du hành, chưa ổn định."),
-    (8, 6): ("Thiên Sơn Độn", "Ẩn mình, tránh mạo hiểm."),
-    (8, 7): ("Địa Sơn Khiêm", "Giữ thái độ khiêm tốn."),
-    (8, 8): ("Sơn Địa Bác", "Tàn lụi, chuyển đổi sang mới.")
+    (1, 1): ("Càn vi Thiên", "Trời mạnh mẽ, tượng trưng cho sự sáng tạo."),
+    (1, 2): ("Thiên Địa Bĩ", "Thời kỳ bế tắc, cần kiên nhẫn."),
+    (1, 3): ("Thiên Lôi Vô Vọng", "Không nên kỳ vọng xa vời."),
+    (1, 4): ("Thiên Sơn Độn", "Nên lui bước, tránh đối đầu."),
+    (1, 5): ("Thiên Thủy Tụng", "Tranh chấp, cần hòa giải."),
+    (1, 6): ("Thiên Hỏa Đồng Nhân", "Hợp tác và đoàn kết."),
+    (1, 7): ("Thiên Trạch Lý", "Tự sửa mình, cải cách."),
+    (1, 8): ("Thiên Phong Cấu", "Gặp gỡ cơ duyên tốt."),
+    (2, 1): ("Địa Thiên Thái", "Thịnh vượng, hòa hợp."),
+    (2, 2): ("Khôn vi Địa", "Đất mềm, nhu thuận."),
+    (2, 3): ("Địa Lôi Phục", "Trở lại, tái sinh."),
+    (2, 4): ("Địa Sơn Khiêm", "Khiêm nhường, thuận lợi."),
+    (2, 5): ("Địa Thủy Sư", "Lãnh đạo tập thể."),
+    (2, 6): ("Địa Hỏa Minh Di", "Ánh sáng bị che lấp."),
+    (2, 7): ("Địa Trạch Lâm", "Tiến lên, mở rộng."),
+    (2, 8): ("Địa Phong Thăng", "Thăng tiến, tăng trưởng."),
+    (3, 1): ("Lôi Thiên Đại Tráng", "Mạnh mẽ, phát triển."),
+    (3, 2): ("Lôi Địa Dự", "Hân hoan, vui vẻ."),
+    (3, 3): ("Thuỷ Lôi Truân", "Gian nan khởi đầu."),
+    (3, 4): ("Sơn Lôi Di", "Chuyển dịch, thay đổi."),
+    (3, 5): ("Thuỷ Lôi Giải", "Giải thoát, tháo gỡ."),
+    (3, 6): ("Hỏa Lôi Phệ Hạp", "Cứng rắn, kiên định."),
+    (3, 7): ("Trạch Lôi Tùy", "Thuận theo hoàn cảnh."),
+    (3, 8): ("Phong Lôi Ích", "Lợi ích đến từ hành động."),
+    (4, 1): ("Sơn Thiên Đại Súc", "Kiềm chế để phát triển."),
+    (4, 2): ("Sơn Địa Bác", "Tan rã, kết thúc chu kỳ."),
+    (4, 3): ("Sơn Lôi Di", "Di chuyển, cần linh hoạt."),
+    (4, 4): ("Sơn vi Cấn", "Dừng lại, tĩnh tại."),
+    (4, 5): ("Sơn Thủy Mông", "U mê, cần khai sáng."),
+    (4, 6): ("Sơn Hỏa Bí", "Trang trí, đẹp đẽ."),
+    (4, 7): ("Sơn Trạch Tổn", "Tổn thất để được lâu dài."),
+    (4, 8): ("Sơn Phong Cổ", "Lỗi lầm xưa, cần sửa."),
+    (5, 1): ("Thuỷ Thiên Nhu", "Chờ đợi thời cơ."),
+    (5, 2): ("Thuỷ Địa Tỷ", "Gắn bó, tương trợ."),
+    (5, 3): ("Thuỷ Lôi Giải", "Giải thoát khó khăn."),
+    (5, 4): ("Thuỷ Sơn Kiển", "Vượt chướng ngại."),
+    (5, 5): ("Thuỷ vi Khảm", "Hiểm nguy, cần cẩn trọng."),
+    (5, 6): ("Thuỷ Hỏa Ký Tế", "Hoàn tất, kết quả tốt."),
+    (5, 7): ("Thuỷ Trạch Tiết", "Tiết chế, giới hạn."),
+    (5, 8): ("Thuỷ Phong Tỉnh", "Giếng nước – tài nguyên."),
+    (6, 1): ("Hỏa Thiên Đại Hữu", "Có của cải, giàu có."),
+    (6, 2): ("Hỏa Địa Tấn", "Tiến lên, phát triển."),
+    (6, 3): ("Hỏa Lôi Phệ Hạp", "Cắn răng vượt khó."),
+    (6, 4): ("Hỏa Sơn Lữ", "Du hành, cô đơn."),
+    (6, 5): ("Hỏa Thuỷ Vị Tế", "Chưa hoàn tất."),
+    (6, 6): ("Hỏa vi Ly", "Sáng suốt, phân biệt."),
+    (6, 7): ("Hỏa Trạch Khuê", "Khác biệt, bất đồng."),
+    (6, 8): ("Hỏa Phong Đỉnh", "Bình ổn, vững chắc."),
+    (7, 1): ("Trạch Thiên Quải", "Quyết đoán, dứt khoát."),
+    (7, 2): ("Trạch Địa Tụy", "Tùy tùng, dễ bị ảnh hưởng."),
+    (7, 3): ("Trạch Lôi Tùy", "Thuận theo tự nhiên."),
+    (7, 4): ("Trạch Sơn Hàm", "Gắn kết, vui vẻ."),
+    (7, 5): ("Trạch Thuỷ Khốn", "Khó khăn, thử thách."),
+    (7, 6): ("Trạch Hỏa Cách", "Cách mạng, thay đổi."),
+    (7, 7): ("Trạch vi Đoài", "Vui vẻ, duyên dáng."),
+    (7, 8): ("Trạch Phong Đại Quá", "Vượt quá mức, nguy hiểm."),
+    (8, 1): ("Phong Thiên Tiểu Súc", "Tích lũy nhỏ, chờ thời."),
+    (8, 2): ("Phong Địa Quan", "Quan sát, suy xét."),
+    (8, 3): ("Phong Lôi Ích", "Lợi ích, thịnh vượng."),
+    (8, 4): ("Phong Sơn Tiệm", "Tiến dần, ổn định."),
+    (8, 5): ("Phong Thủy Hoán", "Biến đổi, đổi mới."),
+    (8, 6): ("Phong Hỏa Gia Nhân", "Gia đình, nội bộ."),
+    (8, 7): ("Phong Trạch Trung Phu", "Thành thật, trung thực."),
+    (8, 8): ("Phong vi Tốn", "Khiêm tốn, nhu thuận."),
 }
 
-# --- Hàm chuyển đổi Can Chi từ số ---
-can_list = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"]
-chi_list = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"]
+# --- Danh sách giờ sinh Can Chi ---
+gio_sinh_labels = [
+    "Tý (23h-01h)", "Sửu (01h-03h)", "Dần (03h-05h)", "Mão (05h-07h)",
+    "Thìn (07h-09h)", "Tỵ (09h-11h)", "Ngọ (11h-13h)", "Mùi (13h-15h)",
+    "Thân (15h-17h)", "Dậu (17h-19h)", "Tuất (19h-21h)", "Hợi (21h-23h)"
+]
 
-def get_can_chi_index(n):
-    can = can_list[n % 10]
-    chi = chi_list[n % 12]
-    return can, chi, n
-
-# --- Giao diện nhập thông tin ngày giờ sinh âm lịch ---
 st.title("🔍 Gieo Quẻ Kinh Dịch theo Mai Hoa Dịch Số")
-st.markdown("Nhập thông tin ngày sinh âm lịch để gieo quẻ theo Mai Hoa Dịch Số:")
+st.markdown("Nhập thông tin **ngày sinh âm lịch** để gieo quẻ theo Mai Hoa Dịch Số:")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -89,39 +86,47 @@ with col1:
     thang = st.number_input("Tháng (âm lịch)", min_value=1, max_value=12, value=1)
 with col2:
     nam = st.number_input("Năm (âm lịch)", min_value=1000, max_value=2100, value=2024)
-    gio_sinh = st.number_input("Giờ sinh (theo canh giờ: 0-11)", min_value=0, max_value=11, value=0, help="Tý = 0, Sửu = 1, ..., Hợi = 11")
+    gio_sinh = st.selectbox("Giờ sinh (theo 12 Can Chi)", options=list(range(12)), format_func=lambda x: gio_sinh_labels[x])
 
 if st.button("🔮 Gieo Quẻ"):
-    # Tính quẻ theo công thức đã thống nhất:
     thuong = (ngay + thang + nam) % 8
     ha = (gio_sinh + ngay + thang + nam) % 8
-    hao_dong = (gio_sinh + ngay + thang + nam) % 6 + 1  # Hào từ 1 đến 6
+    hao_dong = (gio_sinh + ngay + thang + nam) % 6 + 1
 
-    # Đảm bảo giá trị từ 1 đến 8 (không có quẻ 0)
     thuong = 8 if thuong == 0 else thuong
     ha = 8 if ha == 0 else ha
 
-    # Lấy tên quẻ và ý nghĩa
-    ten, y_nghia = ten_que.get((thuong, ha), ("Chưa rõ", "(Chưa cập nhật ý nghĩa cho quẻ này)"))
+    ten, y_nghia = ten_que.get((thuong, ha), (f"Quẻ {thuong}-{ha}", "(Chưa cập nhật ý nghĩa cho quẻ này)"))
 
-    st.subheader(f"🧿 Tên Quẻ: {ten} ({thuong} - {ha})")
-    st.markdown(f"**Ý nghĩa sơ lược:** {y_nghia}")
-    st.write(f"**Hào động:** Hào {hao_dong}")
+    ten_que_thuong = next((v[0] for k, v in ten_que.items() if k[0] == thuong and k[1] == thuong), f"Quẻ {thuong}")
+    ten_que_ha = next((v[0] for k, v in ten_que.items() if k[1] == ha and k[0] == ha), f"Quẻ {ha}")
 
-    # Lưu lịch sử
+    st.subheader(f"🧿 Kết quả gieo quẻ")
+    st.markdown(f"- **Quẻ Thượng (số {thuong})** → {ten_que_thuong}")
+    st.markdown(f"- **Quẻ Hạ (số {ha})** → {ten_que_ha}")
+    st.markdown(f"- **Hào động:** Hào {hao_dong}")
+    st.markdown(f"### 🔮 **Quẻ Chủ: {ten}**")
+    st.markdown(f"{y_nghia}")
+
     if "lich_su" not in st.session_state:
         st.session_state.lich_su = []
     st.session_state.lich_su.append({
         "ngay": f"{ngay}/{thang}/{nam}",
-        "gio": gio_sinh,
+        "gio": gio_sinh_labels[gio_sinh],
         "thuong": thuong,
         "ha": ha,
         "que": ten,
         "hao": hao_dong
     })
 
-# --- Hiển thị lịch sử các lần gieo quẻ ---
 if "lich_su" in st.session_state:
     st.markdown("## 📜 Lịch sử các lần gieo quẻ")
     for idx, record in enumerate(reversed(st.session_state.lich_su)):
         st.write(f"**Lần {len(st.session_state.lich_su)-idx}:** {record['ngay']} giờ {record['gio']} → {record['que']} (Hào {record['hao']})")
+
+    st.download_button(
+        label="📄 Tải xuống lịch sử quẻ (JSON)",
+        data=json.dumps(st.session_state.lich_su, indent=2, ensure_ascii=False),
+        file_name="lich_su_que.json",
+        mime="application/json"
+    )
